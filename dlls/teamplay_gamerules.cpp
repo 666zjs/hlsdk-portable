@@ -103,6 +103,8 @@ void CHalfLifeTeamplay::Think( void )
 		return;
 	}
 
+	m_Timer.Think();
+
 	float flFragLimit = fraglimit.value;
 	if( flFragLimit )
 	{

@@ -76,6 +76,7 @@ LOCAL_SRC_FILES := agrunt.cpp airtank.cpp \
            hornet.cpp \
            hornetgun.cpp \
            houndeye.cpp \
+           hudtimer.cpp \
            ichthyosaur.cpp \
            islave.cpp \
            items.cpp \

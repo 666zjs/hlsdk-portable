@@ -39,6 +39,11 @@
 
 // #define DUCKFIX
 
+extern cvar_t mp_dmg_messages;
+
+#define CHANEL_DEFENDER 1
+#define CHANEL_ATTACKER 2
+
 extern DLL_GLOBAL ULONG g_ulModelIndexPlayer;
 extern DLL_GLOBAL BOOL g_fGameOver;
 extern DLL_GLOBAL BOOL g_fDrawLines;
@@ -458,15 +463,16 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 		return 0;
 	}
 
+	float flArmor = 0;
+	float flArmorDone = 0;
+
 	// keep track of amount of damage last sustained
 	m_lastDamageAmount = (int)flDamage;
 
-	// Armor. 
+	// Armor.
 	if( !( pev->flags & FL_GODMODE ) && pev->armorvalue && !( bitsDamageType & ( DMG_FALL | DMG_DROWN ) ) )// armor doesn't protect against fall or drown damage!
 	{
 		float flNew = flDamage * flRatio;
-
-		float flArmor;
 
 		flArmor = ( flDamage - flNew ) * flBonus;
 
@@ -476,12 +482,40 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 			flArmor = pev->armorvalue;
 			flArmor *= ( 1 / flBonus );
 			flNew = flDamage - flArmor;
+			flArmorDone = pev->armorvalue;
 			pev->armorvalue = 0;
 		}
 		else
+		{
 			pev->armorvalue -= flArmor;
-
+			flArmorDone = flArmor;
+		}
 		flDamage = flNew;
+	}
+
+	char AttackerText[128];
+	char DefenderText[128];
+
+	if( mp_dmg_messages.value )
+	{
+		if( pAttacker == this )
+		{
+			sprintf( DefenderText, "You\n( %i Damage / %i Armor )\n", (int)flDamage, (int)flArmorDone );
+			UTIL_DrawHudMessage( pev, CHAN_DEFENDER, Vector(255, 0, 0), Vector(0, 3, 0), DefenderText );
+
+		}
+		else if( pAttacker->IsPlayer() )
+		{
+			sprintf( DefenderText, "%s\n( %i Damage / %i Armor )\n", STRING( pAttacker->pev->netname ), (int)flDamage, (int)flArmorDone );
+			sprintf( AttackerText, "%s\n( %i Damage / %i Armor )\n", STRING( pev->netname ), (int)flDamage, (int)flArmorDone );
+			UTIL_DrawHudMessage( pev, CHAN_DEFENDER, Vector(255, 0, 0), Vector(0, 3, 0), DefenderText );
+			UTIL_DrawHudMessage( pAttacker->pev, CHAN_ATTACKER, Vector(0, 255, 0), Vector(0, 3, 0), AttackerText );
+		}
+		else
+		{
+			sprintf( DefenderText, "You\n( %i Damage / %i Armor )\n", (int)flDamage, (int)flArmorDone );
+			UTIL_DrawHudMessage( pev, CHAN_DEFENDER, Vector(255, 0, 0), Vector(0, 3, 0), DefenderText );
+		}
 	}
 
 	// this cast to INT is critical!!! If a player ends up with 0.5 health, the engine will get that

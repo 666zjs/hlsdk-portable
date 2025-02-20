@@ -366,7 +366,15 @@ typedef struct hudtextparms_s
 
 // prints as transparent 'title' to the HUD
 extern void			UTIL_HudMessageAll( const hudtextparms_t &textparms, const char *pMessage );
+extern void			UTIL_HudMessage( entvars_t *client, const hudtextparms_t &textparms, const char *pMessage );
 extern void			UTIL_HudMessage( CBaseEntity *pEntity, const hudtextparms_t &textparms, const char *pMessage );
+
+#define CHAN_TIMER 1
+#define CHAN_DEFENDER 2
+#define CHAN_ATTACKER 3
+
+extern void			UTIL_DrawHudMessage( entvars_t *client, int iChannel, Vector vecColor, Vector vecTime, const char *msg );
+extern void			UTIL_DrawHudMessageAll( int iChannel, Vector vecColor, Vector vecTime, const char *msg );
 
 // for handy use with ClientPrint params
 extern char *UTIL_dtos1( int d );

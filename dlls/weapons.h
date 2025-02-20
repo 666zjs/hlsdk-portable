@@ -487,6 +487,22 @@ private:
 	unsigned short m_usFireGlock2;
 };
 
+#if !CLIENT_DLL
+class CFlyingCrowbar : public CBaseEntity
+{
+public:
+
+	void Spawn( void );
+	void Precache( void );
+	void EXPORT BubbleThink( void );
+	void EXPORT SpinTouch( CBaseEntity *pOther );
+	CBasePlayer	*m_pPlayer;
+
+private:
+	EHANDLE m_hOwner;
+};
+#endif
+
 class CCrowbar : public CBasePlayerWeapon
 {
 public:
@@ -499,6 +515,9 @@ public:
 	int AddToPlayer( CBasePlayer *pPlayer );
 
 	void PrimaryAttack( void );
+#if !CLIENT_DLL
+	void SecondaryAttack( void );
+#endif
 	int Swing( int fFirst );
 	BOOL Deploy( void );
 	void Holster( int skiplocal = 0 );

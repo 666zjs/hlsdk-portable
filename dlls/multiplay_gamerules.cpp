@@ -22,6 +22,7 @@
 #include	"player.h"
 #include	"weapons.h"
 #include	"gamerules.h"
+#include	"shake.h"
  
 #include	"skill.h"
 #include	"game.h"
@@ -227,6 +228,8 @@ void CHalfLifeMultiplay::Think( void )
 
 		return;
 	}
+
+	m_Timer.Think();
 
 	float flTimeLimit = timelimit.value * 60;
 	float flFragLimit = fraglimit.value;
@@ -612,6 +615,37 @@ void CHalfLifeMultiplay::PlayerKilled( CBasePlayer *pVictim, entvars_t *pKiller,
 		pKiller->frags += IPointsForKill( peKiller, pVictim );
 
 		FireTargets( "game_playerkill", ktmp, ktmp, USE_TOGGLE, 0 );
+
+		if ( mp_fade_victim.value )
+		{
+			int r, g, b, a;
+
+			const char *fade_color = mp_fade_victim_color.string;
+			if (sscanf( fade_color, "%d %d %d %d", &r, &g, &b, &a) == 4)
+			{
+				r = Q_max(r, 0);
+				g = Q_max(g, 0);
+				b = Q_max(b, 0);
+				a = Q_max(a, 0);
+
+				r = Q_min(r, 255);
+				g = Q_min(g, 255);
+				b = Q_min(b, 255);
+				a = Q_min(a, 255);
+			}
+			else
+			{
+				r = 0;
+				g = 255;
+				b = 0;
+				a = 100;
+			}
+
+			UTIL_ScreenFade( ktmp, Vector( r, g, b ), 0.3, 0.3, a, FFADE_IN );
+		}
+
+		if ( mp_victim_sound.value )
+			CLIENT_COMMAND( ENT( pKiller), "play %s\n", mp_victim_sound_path.string );
 	}
 	else
 	{

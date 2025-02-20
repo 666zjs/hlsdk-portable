@@ -751,6 +751,47 @@ void UTIL_ScreenFade( CBaseEntity *pEntity, const Vector &color, float fadeTime,
 	UTIL_ScreenFadeWrite( fade, pEntity );
 }
 
+void UTIL_HudMessage( entvars_t *client, const hudtextparms_t &textparms, const char *pMessage )
+{
+	MESSAGE_BEGIN( MSG_ONE, SVC_TEMPENTITY, NULL, client );
+	WRITE_BYTE( TE_TEXTMESSAGE );
+	WRITE_BYTE( textparms.channel & 0xFF );
+
+	WRITE_SHORT( FixedSigned16( textparms.x, 1 << 13 ) );
+	WRITE_SHORT( FixedSigned16( textparms.y, 1 << 13 ) );
+	WRITE_BYTE( textparms.effect );
+
+	WRITE_BYTE( textparms.r1 );
+	WRITE_BYTE( textparms.g1 );
+	WRITE_BYTE( textparms.b1 );
+	WRITE_BYTE( textparms.a1 );
+
+	WRITE_BYTE( textparms.r2 );
+	WRITE_BYTE( textparms.g2 );
+	WRITE_BYTE( textparms.b2 );
+	WRITE_BYTE( textparms.a2 );
+
+	WRITE_SHORT( FixedUnsigned16( textparms.fadeinTime, 1 << 8 ) );
+	WRITE_SHORT( FixedUnsigned16( textparms.fadeoutTime, 1 << 8 ) );
+	WRITE_SHORT( FixedUnsigned16( textparms.holdTime, 1 << 8 ) );
+
+	if( textparms.effect == 2 )
+		WRITE_SHORT( FixedUnsigned16( textparms.fxTime, 1 << 8 ) );
+
+	if( strlen( pMessage ) < 512 )
+	{
+		WRITE_STRING( pMessage );
+	}
+	else
+	{
+		char tmp[512];
+		strncpy( tmp, pMessage, 511 );
+		tmp[511] = 0;
+		WRITE_STRING( tmp );
+	}
+	MESSAGE_END();
+}
+
 void UTIL_HudMessage( CBaseEntity *pEntity, const hudtextparms_t &textparms, const char *pMessage )
 {
 	if( !pEntity || !pEntity->IsNetClient() )
@@ -805,6 +846,81 @@ void UTIL_HudMessageAll( const hudtextparms_t &textparms, const char *pMessage )
 		if( pPlayer )
 			UTIL_HudMessage( pPlayer, textparms, pMessage );
 	}
+}
+
+void UTIL_DrawHudMessage( entvars_t *client, int iChannel, Vector vecColor, Vector vecTime, const char *msg )
+{
+	char szText[256];
+	hudtextparms_t hText = {0};
+
+	sprintf(szText, "%s",msg);
+
+	switch (iChannel)
+	{
+		case CHAN_DEFENDER:
+			hText.x = -1;
+			hText.y = 0.6;
+			break;
+
+		case CHAN_ATTACKER:
+			hText.x = -1;
+			hText.y = -0.6;
+			break;
+	}
+
+	hText.a1 = 240; // Brightness
+	hText.a2 = 240;
+
+	hText.r1 = vecColor.x; // Color
+	hText.r2 = vecColor.x;
+	hText.g1 = vecColor.y;
+	hText.g2 = vecColor.y;
+	hText.b1 = vecColor.z;
+	hText.b2 = vecColor.z;
+
+	hText.channel = iChannel;
+
+	hText.fadeinTime = vecTime.x;
+	hText.fadeoutTime = vecTime.z;
+	hText.holdTime = vecTime.y;
+	hText.fxTime = 0,25;
+
+	UTIL_HudMessage(client, hText, szText);
+}
+
+void UTIL_DrawHudMessageAll( int iChannel, Vector vecColor, Vector vecTime, const char *msg )
+{
+	char szText[256];
+	hudtextparms_t hText = {0};
+
+	sprintf(szText, "%s",msg);
+
+	switch (iChannel)
+	{
+		case CHAN_TIMER:
+			hText.x = -1;
+			hText.y = 0.01;
+			break;
+	}
+
+	hText.a1 = 240; // Brightness
+	hText.a2 = 240;
+
+	hText.r1 = vecColor.x; // Color
+	hText.r2 = vecColor.x;
+	hText.g1 = vecColor.y;
+	hText.g2 = vecColor.y;
+	hText.b1 = vecColor.z;
+	hText.b2 = vecColor.z;
+
+	hText.channel = iChannel; // Channel
+
+	hText.fadeinTime = vecTime.x;
+	hText.fadeoutTime = vecTime.z;
+	hText.holdTime = vecTime.y;
+	hText.fxTime = 0,25;
+
+	UTIL_HudMessageAll(hText, szText);
 }
 				 
 extern int gmsgTextMsg, gmsgSayText;

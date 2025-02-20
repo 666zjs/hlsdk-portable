@@ -46,6 +46,16 @@ extern cvar_t bhopcap;
 extern cvar_t sv_pushable_fixed_tick_fudge;
 extern cvar_t sv_busters;
 
+extern cvar_t mp_flying_crowbar;
+extern cvar_t mp_clock;
+extern cvar_t mp_allowdrop;
+extern cvar_t mp_dmg_messages;
+extern cvar_t mp_fade_victim;
+extern cvar_t mp_fade_victim_color;
+
+extern cvar_t mp_victim_sound;
+extern cvar_t mp_victim_sound_path;
+
 extern cvar_t allow_connectionless;
 extern cvar_t connectionless_args;
 
