@@ -6,6 +6,19 @@
 #include "player.h"
 #include "hudtimer.h"
 
+const char* g_CountdownSounds[] = {
+	"vox/one",
+	"vox/two",
+	"vox/three",
+	"vox/four",
+	"vox/five",
+	"vox/six",
+	"vox/seven",
+	"vox/eight",
+	"vox/nine",
+	"vox/ten"
+};
+
 HudTimer::HudTimer()
 {
 	m_fNextTimerUpdate = gpGlobals->time + 3.0; // Dont start timer directly.
@@ -37,6 +50,10 @@ void HudTimer::Think()
 		// Write the time. (negative turns off timer on client)
 		long lTime = (m_pmp_timelimit->value * 60) - m_fEffectiveTime;
 
+		int r = 250;
+		int g = 160;
+		int b = 0;
+
 		if( lTime > 0 )
 		{
 			char szTime[128];
@@ -67,7 +84,17 @@ void HudTimer::Think()
 				sprintf( szTime, "%lds\n", lTime );
 			}
 
-			UTIL_DrawHudMessageAll( CHAN_TIMER, Vector(250, 160, 0), Vector(0, 60, 0), szTime );
+			if (lTime <= 10 && lTime > 0)
+			{
+				r = 250;
+				g = 0;
+				b = 0;
+
+				const char* countdownSound = g_CountdownSounds[lTime - 1];
+				UTIL_SpeakAll(countdownSound);
+			}
+
+			UTIL_DrawHudMessageAll( CHAN_TIMER, Vector(r, g, b), Vector(0, 60, 0), szTime );
 			m_fNextTimerUpdate += 1;
 		}
 	}

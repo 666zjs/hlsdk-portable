@@ -1644,6 +1644,20 @@ void UTIL_PrecacheOther( const char *szClassname )
 	REMOVE_ENTITY( pent );
 }
 
+void UTIL_SpeakAll( const char *message )
+{
+	char text[256];
+	strcpy(text, "speak \"");
+	strcat(text, message);
+	strcat(text, "\"\n");
+
+	CBasePlayer *client = NULL;
+
+	while ( ((client = (CBasePlayer*)UTIL_FindEntityByClassname( client, "player" )) != NULL) && (!FNullEnt(client->edict())) )
+	{
+		CLIENT_COMMAND(client->edict(), text);
+	}
+}
 //=========================================================
 // UTIL_LogPrintf - Prints a logged message to console.
 // Preceded by LOG: ( timestamp ) < message >
