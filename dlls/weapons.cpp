@@ -34,6 +34,7 @@
 extern CGraph WorldGraph;
 extern int gEvilImpulse101;
 
+extern cvar_t mp_weaponbox_weaponmodel;
 #define NOT_USED 255
 
 DLL_GLOBAL	short g_sModelIndexLaser;// holds the index for the laser beam
@@ -442,6 +443,9 @@ void CBasePlayerItem::FallInit( void )
 	SetThink( &CBasePlayerItem::FallThink );
 
 	pev->nextthink = gpGlobals->time + 0.1f;
+
+	m_WeaponModelIndex = pev->modelindex;
+	m_WeaponModel = pev->model;
 }
 
 //=========================================================
@@ -1445,6 +1449,9 @@ BOOL CWeaponBox::PackWeapon( CBasePlayerItem *pWeapon )
 		m_rgpPlayerItems[iWeaponSlot] = pWeapon;
 		pWeapon->m_pNext = NULL;	
 	}
+
+	if ( mp_weaponbox_weaponmodel.value )
+		SET_MODEL( ENT( pev ), STRING( pWeapon->m_WeaponModel ) );
 
 	pWeapon->pev->spawnflags |= SF_NORESPAWN;// never respawn
 	pWeapon->pev->movetype = MOVETYPE_NONE;

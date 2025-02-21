@@ -273,6 +273,9 @@ public:
 
 	// int		m_iIdPrimary;										// Unique Id for primary ammo
 	// int		m_iIdSecondary;										// Unique Id for secondary ammo
+
+	int m_WeaponModelIndex;
+	string_t m_WeaponModel;
 };
 
 // inventory items that 
