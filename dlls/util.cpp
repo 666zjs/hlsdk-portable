@@ -1658,6 +1658,28 @@ void UTIL_SpeakAll( const char *message )
 		CLIENT_COMMAND(client->edict(), text);
 	}
 }
+
+void UTIL_DrawRandomGlow( entvars_t *pev )
+{
+	Vector m_GlowColors[] = {
+		Vector(255, 0, 0),		// Red
+		Vector(255, 127, 0),	// Orange
+		Vector(255, 255, 0),	// Yellow
+		Vector(0, 255, 0),		// Green
+		Vector(0, 0, 255),		// Blue
+		Vector(75, 0, 130),		// Indigo
+		Vector(148, 0, 211),	// Violet
+		Vector(0, 200, 200),	// Cyan
+		Vector(200, 0, 200),	// Magenta
+	};
+
+	int m_ColorIndex = RANDOM_LONG(0, sizeof(m_GlowColors) / sizeof(m_GlowColors[0]) - 1);
+	Vector m_RenderColor = m_GlowColors[m_ColorIndex];
+
+	pev->renderfx |= kRenderFxGlowShell;
+	pev->rendercolor = m_RenderColor;
+}
+
 //=========================================================
 // UTIL_LogPrintf - Prints a logged message to console.
 // Preceded by LOG: ( timestamp ) < message >

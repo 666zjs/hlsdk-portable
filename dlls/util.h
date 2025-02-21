@@ -580,4 +580,5 @@ float UTIL_SharedRandomFloat( unsigned int seed, float low, float high );
 float UTIL_WeaponTimeBase( void );
 
 extern void UTIL_SpeakAll( const char *message );
+extern void UTIL_DrawRandomGlow( entvars_t *pev );
 #endif // UTIL_H

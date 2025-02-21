@@ -35,6 +35,7 @@ extern CGraph WorldGraph;
 extern int gEvilImpulse101;
 
 extern cvar_t mp_weaponbox_weaponmodel;
+extern cvar_t mp_items_glow;
 #define NOT_USED 255
 
 DLL_GLOBAL	short g_sModelIndexLaser;// holds the index for the laser beam
@@ -433,6 +434,9 @@ void CBasePlayerItem::SetObjectCollisionBox( void )
 //=========================================================
 void CBasePlayerItem::FallInit( void )
 {
+	if ( mp_items_glow.value )
+		UTIL_DrawRandomGlow( pev );
+
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_BBOX;
 
@@ -1056,6 +1060,9 @@ void CBasePlayerWeapon::Holster( int skiplocal /* = 0 */ )
 
 void CBasePlayerAmmo::Spawn( void )
 {
+	if ( mp_items_glow.value )
+		UTIL_DrawRandomGlow( pev );
+
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
 	UTIL_SetSize( pev, Vector( -16, -16, 0 ), Vector( 16, 16, 16 ) );
@@ -1267,6 +1274,9 @@ void CWeaponBox::KeyValue( KeyValueData *pkvd )
 void CWeaponBox::Spawn( void )
 {
 	Precache();
+
+	if ( mp_items_glow.value )
+		UTIL_DrawRandomGlow( pev );
 
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
