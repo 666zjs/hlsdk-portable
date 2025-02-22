@@ -1659,7 +1659,7 @@ void UTIL_SpeakAll( const char *message )
 	}
 }
 
-void UTIL_DrawRandomGlow( entvars_t *pev )
+void UTIL_DrawRandomGlowShell( entvars_t *pev )
 {
 	Vector m_GlowColors[] = {
 		Vector(255, 0, 0),		// Red

@@ -61,7 +61,7 @@ cvar_t mp_clock = { "mp_clock", "1", FCVAR_SERVER };
 cvar_t mp_allowdrop = { "mp_allowdrop", "1", FCVAR_SERVER };
 cvar_t mp_dmg_messages = { "mp_dmg_messages", "1", FCVAR_SERVER };
 cvar_t mp_weaponbox_weaponmodel = { "mp_weaponbox_weaponmodel", "1", FCVAR_SERVER };
-cvar_t mp_items_glow = { "mp_items_glow", "1", FCVAR_SERVER };
+cvar_t mp_items_glowshell = { "mp_items_glowshell", "1", FCVAR_SERVER };
 
 cvar_t mp_fade_victim = { "mp_fade_victim", "1", FCVAR_SERVER };
 cvar_t mp_fade_victim_color = { "mp_fade_victim_color", "0 255 0 100", FCVAR_SERVER }; // r, g ,b ,a
@@ -533,7 +533,7 @@ void GameDLLInit( void )
 	CVAR_REGISTER( &mp_allowdrop );
 	CVAR_REGISTER( &mp_dmg_messages );
 	CVAR_REGISTER( &mp_weaponbox_weaponmodel );
-	CVAR_REGISTER( &mp_items_glow );
+	CVAR_REGISTER( &mp_items_glowshell );
 	CVAR_REGISTER( &mp_fade_victim );
 	CVAR_REGISTER( &mp_fade_victim_color );
 

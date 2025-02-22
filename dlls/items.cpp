@@ -30,7 +30,7 @@
 #include "gamerules.h"
 
 extern int gmsgItemPickup;
-extern cvar_t mp_items_glow;
+extern cvar_t mp_items_glowshell;
 
 class CWorldItem : public CBaseEntity
 {
@@ -89,8 +89,8 @@ void CWorldItem::Spawn( void )
 
 void CItem::Spawn( void )
 {
-	if ( mp_items_glow.value )
-		UTIL_DrawRandomGlow( pev );
+	if ( mp_items_glowshell.value )
+		UTIL_DrawRandomGlowShell( pev );
 
 	pev->movetype = MOVETYPE_TOSS;
 	pev->solid = SOLID_TRIGGER;
