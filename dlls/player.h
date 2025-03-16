@@ -329,6 +329,9 @@ public:
 	int m_iAutoWepSwitch;
 
 	Vector m_vecLastViewAngles;
+
+	BOOL m_bIsBot;
+	void Disconnect() { m_bIsBot = FALSE; }
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
