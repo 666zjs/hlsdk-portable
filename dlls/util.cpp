@@ -1680,6 +1680,32 @@ void UTIL_DrawRandomGlowShell( entvars_t *pev )
 	pev->rendercolor = m_RenderColor;
 }
 
+void UTIL_RemoveColorTags(const char* input, char* output)
+{
+	int i = 0;
+	int j = 0;
+
+	while (input[i] != '\0')
+	{
+		if (input[i] == '^')
+		{
+			i++;
+
+			while (input[i] >= '0' && input[i] <= '9')
+			{
+				i++;
+			}
+		} else
+		{
+			output[j] = input[i];
+			j++;
+			i++;
+		}
+	}
+
+	output[j] = '\0';
+}
+
 //=========================================================
 // UTIL_LogPrintf - Prints a logged message to console.
 // Preceded by LOG: ( timestamp ) < message >

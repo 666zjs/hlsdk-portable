@@ -581,4 +581,6 @@ float UTIL_WeaponTimeBase( void );
 
 extern void UTIL_SpeakAll( const char *message );
 extern void UTIL_DrawRandomGlowShell( entvars_t *pev );
+
+extern void UTIL_RemoveColorTags(const char* input, char* output);
 #endif // UTIL_H

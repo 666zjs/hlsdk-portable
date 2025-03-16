@@ -496,6 +496,12 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 	char AttackerText[128];
 	char DefenderText[128];
 
+	char AttackerName[128];
+	char DefenderName[128];
+
+	UTIL_RemoveColorTags(STRING( pAttacker->pev->netname ), AttackerName);
+	UTIL_RemoveColorTags(STRING( pev->netname ), DefenderName);
+
 	if( mp_dmg_messages.value )
 	{
 		if( pAttacker == this )
@@ -506,8 +512,8 @@ int CBasePlayer::TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, fl
 		}
 		else if( pAttacker->IsPlayer() )
 		{
-			sprintf( DefenderText, "%s\n( %i Damage / %i Armor )\n", STRING( pAttacker->pev->netname ), (int)flDamage, (int)flArmorDone );
-			sprintf( AttackerText, "%s\n( %i Damage / %i Armor )\n", STRING( pev->netname ), (int)flDamage, (int)flArmorDone );
+			sprintf( DefenderText, "%s\n( %i Damage / %i Armor )\n", AttackerName, (int)flDamage, (int)flArmorDone );
+			sprintf( AttackerText, "%s\n( %i Damage / %i Armor )\n", DefenderName, (int)flDamage, (int)flArmorDone );
 			UTIL_DrawHudMessage( pev, CHAN_DEFENDER, Vector(255, 0, 0), Vector(0, 3, 0), DefenderText );
 			UTIL_DrawHudMessage( pAttacker->pev, CHAN_ATTACKER, Vector(0, 255, 0), Vector(0, 3, 0), AttackerText );
 		}
