@@ -1392,7 +1392,7 @@ float CBaseMonster::OpenDoorAndWait( entvars_t *pevDoor )
 
 	//ALERT( at_aiconsole, "A door. " );
 	CBaseEntity *pcbeDoor = CBaseEntity::Instance( pevDoor );
-	if( pcbeDoor )
+	if( pcbeDoor && !pcbeDoor->IsLockedByMaster() )
 	{
 		//ALERT( at_aiconsole, "unlocked! " );
 		pcbeDoor->Use( this, this, USE_ON, 0.0 );
@@ -2023,8 +2023,6 @@ void CBaseMonster::MonsterInit( void )
 	SetThink( &CBaseMonster::MonsterInitThink );
 	pev->nextthink = gpGlobals->time + 0.1f;
 	SetUse( &CBaseMonster::MonsterUse );
-
-	m_flLastYawTime = gpGlobals->time;
 }
 
 //=========================================================
@@ -2509,9 +2507,12 @@ float CBaseMonster::ChangeYaw( int yawSpeed )
 	{
 		if( monsteryawspeedfix.value )
 		{
-			float delta;
+			if( m_flLastYawTime == 0.f )
+				m_flLastYawTime = gpGlobals->time - gpGlobals->frametime;
 
-			delta = Q_min( gpGlobals->time - m_flLastYawTime, 0.25f );
+			float delta = Q_min( gpGlobals->time - m_flLastYawTime, 0.25f );
+
+			m_flLastYawTime = gpGlobals->time;
 
 			speed = (float)yawSpeed * delta * 2;
 		}
@@ -2560,8 +2561,6 @@ float CBaseMonster::ChangeYaw( int yawSpeed )
 	}
 	else
 		move = 0;
-
-	m_flLastYawTime = gpGlobals->time;
 
 	return move;
 }
@@ -3189,6 +3188,28 @@ BOOL CBaseMonster::FCanActiveIdle( void )
 	return FALSE;
 }
 
+#if !SPEAKABLE_TARGETS
+void CBaseMonster::PlaySentence( const char *pszSentence, float duration, float volume, float attenuation )
+{
+	if( pszSentence && IsAlive() )
+	{
+		if( pszSentence[0] == '!' )
+			EMIT_SOUND_DYN( edict(), CHAN_VOICE, pszSentence, volume, attenuation, 0, PITCH_NORM );
+		else
+			SENTENCEG_PlayRndSz( edict(), pszSentence, volume, attenuation, 0, PITCH_NORM );
+	}
+}
+
+void CBaseMonster::PlayScriptedSentence( const char *pszSentence, float duration, float volume, float attenuation, BOOL bConcurrent, CBaseEntity *pListener )
+{
+	PlaySentence( pszSentence, duration, volume, attenuation );
+}
+
+void CBaseMonster::SentenceStop( void )
+{
+	EMIT_SOUND( edict(), CHAN_VOICE, "common/null.wav", 1.0, ATTN_IDLE );
+}
+#endif
 void CBaseMonster::CorpseFallThink( void )
 {
 	if( pev->flags & FL_ONGROUND )

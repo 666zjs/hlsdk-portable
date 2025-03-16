@@ -1587,7 +1587,8 @@ void CNodeEnt::Spawn( void )
 
 	if( WorldGraph.m_cNodes >= MAX_NODES )
 	{
-		ALERT( at_aiconsole, "cNodes > MAX_NODES\n" );
+		ALERT( at_aiconsole, "cNodes >= MAX_NODES\n" );
+		REMOVE_ENTITY( edict() );
 		return;
 	}
 
@@ -2475,7 +2476,10 @@ int CGraph::FLoadGraph( const char *szMapName )
 			length -= sizeof(CLink_Retail) * m_cLinks;
 			if( length < 0 )
 				goto ShortFile;
-			reinterpret_cast<CLink_Retail*>(pMemFile) -> copyOverTo(m_pLinkPool);
+			for (int j = 0; j < m_cLinks; ++j)
+			{
+				reinterpret_cast<CLink_Retail*>(pMemFile + sizeof(CLink_Retail) * j) -> copyOverTo(m_pLinkPool + j);
+			}
 			pMemFile += sizeof(CLink_Retail) * m_cLinks;
 		}
 #endif

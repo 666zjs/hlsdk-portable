@@ -680,6 +680,14 @@ void ClientCommand( edict_t *pEntity )
 		strncpy( command, pcmd, sizeof(command) - 1);
 		command[sizeof(command) - 1] = '\0';
 
+		// First parse the name and remove any %'s
+		for( char *pApersand = command; *pApersand; pApersand++ )
+		{
+			// Replace it with a space
+			if( *pApersand == '%' )
+				*pApersand = ' ';
+		}
+
 		// tell the user they entered an unknown command
 		ClientPrint( &pEntity->v, HUD_PRINTCONSOLE, UTIL_VarArgs( "Unknown command: %s\n", command ) );
 	}
@@ -1384,7 +1392,7 @@ int AddToFullPack( struct entity_state_s *state, int e, edict_t *ent, edict_t *h
 	}
 	else
 	{
-		ClearBits( state->eflags, EFLAG_SLERP | EFLAG_FLESH_SOUND );
+		ClearBits( state->eflags, EFLAG_FLESH_SOUND );
 	}
 
 	return 1;

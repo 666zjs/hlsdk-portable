@@ -21,7 +21,7 @@
 
 
 static cvar_t build_commit = { "sv_game_build_commit", g_VCSInfo_Commit };
-static cvar_t build_branch = { "sv_game_build_branch", g_VCSInfo_Commit };
+static cvar_t build_branch = { "sv_game_build_branch", g_VCSInfo_Branch };
 
 cvar_t displaysoundlist = {"displaysoundlist","0"};
 
@@ -65,10 +65,11 @@ cvar_t mp_allowdrop = { "mp_allowdrop", "1", FCVAR_SERVER };
 cvar_t mp_dmg_messages = { "mp_dmg_messages", "1", FCVAR_SERVER };
 
 // Engine Cvars
-cvar_t *g_psv_gravity = NULL;
-cvar_t *g_psv_aim = NULL;
-cvar_t *g_footsteps = NULL;
-cvar_t *g_enable_cheats = NULL;
+cvar_t *g_psv_gravity;
+cvar_t *g_psv_aim;
+cvar_t *g_psv_allow_autoaim;
+cvar_t *g_footsteps;
+cvar_t *g_enable_cheats;
 
 cvar_t *g_psv_developer;
 
@@ -479,6 +480,7 @@ void GameDLLInit( void )
 
 	g_psv_gravity = CVAR_GET_POINTER( "sv_gravity" );
 	g_psv_aim = CVAR_GET_POINTER( "sv_aim" );
+	g_psv_allow_autoaim = CVAR_GET_POINTER( "sv_allow_autoaim" );
 	g_footsteps = CVAR_GET_POINTER( "mp_footsteps" );
 
 	g_psv_developer = CVAR_GET_POINTER( "developer" );

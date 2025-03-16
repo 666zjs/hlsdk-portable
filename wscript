@@ -2,7 +2,7 @@
 # encoding: utf-8
 # a1batross, mittorn, 2018
 
-from waflib import Build, Configure, Context, Logs
+from waflib import Build, Configure, Context, Logs, TaskGen
 import sys
 import os
 import re
@@ -20,6 +20,12 @@ def get_taskgen_count(self):
 	except: idx = 0 # don't set tg_idx_count to not increase counter
 	return idx
 
+@TaskGen.feature('cshlib', 'cxxshlib', 'fcshlib')
+@TaskGen.before_method('apply_implib')
+def remove_implib_install(self):
+	if not getattr(self, 'install_path_implib', None):
+		self.install_path_implib = None
+
 def options(opt):
 	opt.load('reconfigure compiler_optimizations xcompile compiler_cxx compiler_c clang_compilation_database strip_on_install msdev msvs subproject')
 
@@ -34,21 +40,25 @@ def options(opt):
 	grp.add_option('--enable-voicemgr', action = 'store_true', dest = 'USE_VOICEMGR', default = False,
 		help = 'Enable VOICE MANAGER')
 
-	opt.add_subproject('dlls')
-	opt.add_subproject('cl_dll')
+	# a1ba: hidden option for CI
+	grp.add_option('--enable-msvcdeps', action='store_true', dest='MSVCDEPS', default=False, help='')
+
+	opt.add_subproject('cl_dll dlls')
 
 def configure(conf):
 	conf.load('fwgslib reconfigure compiler_optimizations')
-	conf.env.MSVC_TARGETS = ['x86' if not conf.options.ALLOW64 else 'x64']
-
-	# Force XP compatibility, all build targets should add subsystem=bld.env.MSVC_SUBSYSTEM
-	if conf.env.MSVC_TARGETS[0] == 'x86':
-		conf.env.MSVC_SUBSYSTEM = 'WINDOWS,5.01'
+	if conf.options.ALLOW64:
+		conf.env.MSVC_TARGETS = ['x64']
+	elif sys.maxsize > 2 ** 32 and not conf.options.MSVC_WINE:
+		conf.env.MSVC_TARGETS = ['amd64_x86', 'x86']
 	else:
-		conf.env.MSVC_SUBSYSTEM = 'WINDOWS'
+		conf.env.MSVC_TARGETS = ['x86']
 
 	# Load compilers early
-	conf.load('xcompile compiler_c compiler_cxx')
+	conf.load('xcompile compiler_c compiler_cxx gccdeps')
+
+	if conf.options.MSVCDEPS:
+		conf.load('msvcdeps')
 
 	# HACKHACK: override msvc DEST_CPU value by something that we understand
 	if conf.env.DEST_CPU == 'amd64':
@@ -76,8 +86,7 @@ def configure(conf):
 		conf.define('XASH_BUILD_BRANCH', conf.env.GIT_BRANCH)
 >>>>>>> cringedm-updated
 
-	enforce_pic = True # modern defaults
-	conf.check_pic(enforce_pic)
+	conf.check_pic(True) # modern defaults
 
 	# We restrict 64-bit builds ONLY for Win/Linux/OSX running on Intel architecture
 	# Because compatibility with original GoldSrc

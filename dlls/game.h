@@ -55,6 +55,7 @@ extern cvar_t mp_dmg_messages;
 // Engine Cvars
 extern cvar_t *g_psv_gravity;
 extern cvar_t *g_psv_aim;
+extern cvar_t *g_psv_allow_autoaim;
 extern cvar_t *g_footsteps;
 extern cvar_t *g_enable_cheats;
 
