@@ -71,6 +71,9 @@ cvar_t mp_victim_sound_path = { "mp_victim_sound_path", "buttons/bell1.wav", FCV
 cvar_t allow_connectionless = { "allow_connectionless","0", FCVAR_SERVER };
 cvar_t connectionless_args	= { "connectionless_args","", FCVAR_SERVER };
 
+cvar_t  dm_map = { "dm_map", "" };
+cvar_t  dm_nextmap = { "dm_nextmap", "" };
+
 // Engine Cvars
 cvar_t *g_psv_gravity;
 cvar_t *g_psv_aim;
@@ -542,6 +545,9 @@ void GameDLLInit( void )
 
 	CVAR_REGISTER( &allow_connectionless );
 	CVAR_REGISTER( &connectionless_args );
+
+	CVAR_REGISTER( &dm_map );
+	CVAR_REGISTER( &dm_nextmap );
 
 
 // REGISTER CVARS FOR SKILL LEVEL STUFF

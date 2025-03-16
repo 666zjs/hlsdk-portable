@@ -33,68 +33,58 @@ HudTimer::~HudTimer()
 
 void HudTimer::Think()
 {
-	if ( !mp_clock.value )
+	if (!mp_clock.value)
 		return;
 
 	// Calculate effective time
 	m_fEffectiveTime += gpGlobals->time - m_fLastTimeCheck;
-
 	m_fLastTimeCheck = gpGlobals->time;
 
-	if( m_fNextTimerUpdate <= m_fEffectiveTime )
+	if (m_fNextTimerUpdate <= m_fEffectiveTime)
 	{
 		// Sanity time check
-		if( timelimit.value > 4320 )
-        		CVAR_SET_FLOAT( "mp_timelimit", 4320 ); // Three days maximum
+		if (timelimit.value > 4320)
+			CVAR_SET_FLOAT("mp_timelimit", 4320); // Three days maximum
 
 		// Write the time. (negative turns off timer on client)
 		long lTime = (m_pmp_timelimit->value * 60) - m_fEffectiveTime;
 
-		int r = 250;
-		int g = 160;
-		int b = 0;
+		char szTime[128];
 
-		if( lTime > 0 )
+		if (lTime > 0)
 		{
-			char szTime[128];
-			if( 86400 < lTime )
+			long days = lTime / 86400;
+			long hours = (lTime % 86400) / 3600;
+			long minutes = (lTime % 3600) / 60;
+			long seconds = lTime % 60;
+
+			if (days > 0)
 			{
-				//More than one day. Print days, hour, minutes and seconds
-				ldiv_t d1 = ldiv( lTime, 86400 );
-				ldiv_t d2 = ldiv( d1.rem, 3600 );
-				ldiv_t d3 = ldiv( d2.rem, 60 );
-				sprintf( szTime, "%ldd %ldh %02ldm %02lds\n", d1.quot, d2.quot, d3.quot, d3.rem );
+				sprintf(szTime, "%ldd %ldh %02ldm %02lds", days, hours, minutes, seconds);
 			}
-			else if( 3600 < lTime )
+			else if (hours > 0)
 			{
-				// More than one hour. Print hour, minutes and seconds
-				ldiv_t d1 = ldiv( lTime, 3600 );
-				ldiv_t d2 = ldiv( d1.rem, 60 );
-				sprintf( szTime, "%ldh %02ldm %02lds\n", d1.quot, d2.quot, d2.rem );
+				sprintf(szTime, "%ldh %02ldm %02lds", hours, minutes, seconds);
 			}
-			else if( 60 < lTime )
+			else if (minutes > 0)
 			{
-				// More than one minute. Print minutes and seconds.
-				ldiv_t d = ldiv( lTime, 60 );
-				sprintf( szTime, "%ldm %02lds\n", d.quot, d.rem );
+				sprintf(szTime, "%ldm %02lds", minutes, seconds);
 			}
 			else
 			{
-				// Less than a minute left. Print seconds.
-				sprintf( szTime, "%lds\n", lTime );
+				sprintf(szTime, "%lds", seconds);
 			}
 
 			if (lTime <= 10 && lTime > 0)
 			{
-				r = 250;
-				g = 0;
-				b = 0;
-
 				const char* countdownSound = g_CountdownSounds[lTime - 1];
 				UTIL_SpeakAll(countdownSound);
 			}
 
-			UTIL_DrawHudMessageAll( CHAN_TIMER, Vector(r, g, b), Vector(0, 60, 0), szTime );
+			char szText[256];
+			sprintf(szText, "Map: %s\nNext: %s\n%s\n", CVAR_GET_STRING( "dm_map" ), CVAR_GET_STRING( "dm_nextmap" ), szTime );
+
+			UTIL_DrawHudMessageAll(CHAN_TIMER, Vector(250, 160, 0), Vector(0, 60, 0), szText);
 			m_fNextTimerUpdate += 1;
 		}
 	}

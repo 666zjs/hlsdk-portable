@@ -61,6 +61,9 @@ extern cvar_t mp_victim_sound_path;
 extern cvar_t allow_connectionless;
 extern cvar_t connectionless_args;
 
+extern cvar_t dm_map;
+extern cvar_t dm_nextmap;
+
 // Engine Cvars
 extern cvar_t *g_psv_gravity;
 extern cvar_t *g_psv_aim;
