@@ -1481,6 +1481,86 @@ void CBasePlayer::StartDeathCam( void )
 	pev->modelindex = 0;
 }
 
+void CBasePlayer::StartWelcomeCam( void )
+{
+	if ( m_bInWelcomeCam )
+	{
+		return;
+	}
+
+	m_bInWelcomeCam = TRUE;
+
+	edict_t *pSpot, *pNewSpot;
+	pSpot = FIND_ENTITY_BY_CLASSNAME( NULL, "info_intermission");
+	if ( !FNullEnt( pSpot ) )
+	{
+		// at least one intermission spot in the world.
+		int iRand = RANDOM_LONG( 0, 3 );
+
+		while ( iRand > 0 )
+		{
+			pNewSpot = FIND_ENTITY_BY_CLASSNAME( pSpot, "info_intermission");
+
+			if ( pNewSpot )
+			{
+				pSpot = pNewSpot;
+			}
+
+			iRand--;
+		}
+
+		UTIL_SetOrigin( pev, pSpot->v.origin );
+		// Find target for intermission
+		edict_t *pTarget = FIND_ENTITY_BY_TARGETNAME( NULL, STRING(pSpot->v.target) );
+		if (pTarget && !FNullEnt(pTarget))
+		{
+			// Calculate angles to look at camera target
+			pev->angles = UTIL_VecToAngles( pTarget->v.origin - pSpot->v.origin );
+			pev->angles.x = -pev->angles.x;
+		}
+		else
+		{
+			pev->angles = pSpot->v.v_angle;
+		}
+	}
+	else
+	{
+		// no intermission spot. Push them up in the air, looking down
+		TraceResult tr;
+		UTIL_TraceLine( pev->origin, pev->origin + Vector( 0, 0, 128 ), ignore_monsters, edict(), &tr );
+		UTIL_SetOrigin( pev, tr.vecEndPos - Vector( 0, 0, 10 ) );
+		pev->angles.x = pev->v_angle.x = 30;
+	}
+
+	// Remove crosshair
+	MESSAGE_BEGIN(MSG_ONE, gmsgCurWeapon, NULL, pev);
+	WRITE_BYTE(0);
+	WRITE_BYTE(0);
+	WRITE_BYTE(0);
+	MESSAGE_END();
+
+	m_iHideHUD = HIDEHUD_WEAPONS | HIDEHUD_HEALTH;
+	m_afPhysicsFlags |= PFLAG_OBSERVER;
+	pev->view_ofs = g_vecZero;
+	pev->fixangle = TRUE;
+	pev->solid = SOLID_NOT;
+	pev->takedamage = DAMAGE_NO;
+	pev->movetype = MOVETYPE_NOCLIP;	// HACK HACK: Player fall down with MOVETYPE_NONE
+	pev->health = 1;					// Let player stay vertically, not lie on a side
+	pev->deadflag = DEAD_RESPAWNABLE;
+	pev->effects = EF_NODRAW;			// Hide model. This is used instead of pev->modelindex = 0
+}
+
+void CBasePlayer::StopWelcomeCam( void )
+{
+	m_bInWelcomeCam = FALSE;
+
+	m_iHideHUD = 0;
+
+	Spawn();
+	pev->nextthink = -1;
+}
+
 void CBasePlayer::StartObserver( Vector vecPosition, Vector vecViewAngle )
 {
 	// clear any clientside entities attached to this player
@@ -1953,6 +2033,16 @@ void CBasePlayer::PreThink( void )
 		Observer_CheckTarget();
 		Observer_CheckProperties();
 		pev->impulse = 0;
+		return;
+	}
+
+	// Welcome cam buttons handling
+	if (m_bInWelcomeCam)
+	{
+		if (m_afButtonPressed & IN_ATTACK)
+		{
+			StopWelcomeCam();
+		}
 		return;
 	}
 
@@ -2945,6 +3035,8 @@ ReturnSpot:
 
 void CBasePlayer::Spawn( void )
 {
+	m_bConnected = TRUE;
+
 	m_flStartCharge = gpGlobals->time;
 	pev->classname = MAKE_STRING( "player" );
 	pev->health = 100;
@@ -3107,6 +3199,8 @@ int CBasePlayer::Restore( CRestore &restore )
 		return 0;
 
 	int status = restore.ReadFields( "PLAYER", this, m_playerSaveData, ARRAYSIZE( m_playerSaveData ) );
+
+	m_bConnected = TRUE;
 
 	SAVERESTOREDATA *pSaveData = (SAVERESTOREDATA *)gpGlobals->pSaveData;
 	// landmark isn't present.

@@ -183,20 +183,44 @@ void ClientKill( edict_t *pEntity )
 {
 	entvars_t *pev = &pEntity->v;
 
-	CBasePlayer *pl = (CBasePlayer*)CBasePlayer::Instance( pev );
+	// Is the client spawned yet?
+	if (!pEntity->pvPrivateData)
+		return;
 
-	if( pl->m_fNextSuicideTime > gpGlobals->time )
-		return;  // prevent suiciding too ofter
+	// PrivateData is never deleted after it was created on first PutInServer so we will check for IsConnected flag too
+	CBasePlayer *pPlayer = (CBasePlayer *)CBasePlayer::Instance(pev);
+	if (!pPlayer || !pPlayer->IsConnected())
+		return;
 
-	pl->m_fNextSuicideTime = gpGlobals->time + 1.0f;  // don't let them suicide for 5 seconds after suiciding
+	// prevent suiciding too often
+	if ( pPlayer->m_fNextSuicideTime > gpGlobals->time )
+		return;
+	pPlayer->m_fNextSuicideTime = gpGlobals->time + 1;
+
+	// prevent death in spectator mode
+	if ( pev->iuser1 != OBS_NONE)
+	{
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "Can't suicide while in spectator mode!\n" ) );
+		return;
+	}
+
+	// prevent death if already dead
+	if ( pev->deadflag != DEAD_NO)
+	{
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "Can't suicide -- already dead!\n" ) );
+		return;
+	}
+
+	// prevent death in welcome cam
+	if (pPlayer->m_bInWelcomeCam)
+	{
+		ClientPrint( pev, HUD_PRINTCONSOLE, UTIL_VarArgs( "Can't suicide while in welcome cam mode!\n" ) );
+		return;
+	}
 
 	// have the player kill themself
 	pev->health = 0;
-	pl->Killed( pev, GIB_NEVER );
-
-	//pev->modelindex = g_ulModelIndexPlayer;
-	//pev->frags -= 2;		// extra penalty
-	//respawn( pev );
+	pPlayer->Killed( pev, GIB_NEVER );
 }
 
 /*
@@ -232,6 +256,9 @@ void ClientPutInServer( edict_t *pEntity )
 
 	pPlayer->pev->iuser1 = 0;
 	pPlayer->pev->iuser2 = 0;
+
+	// Mark as PutInServer
+	pPlayer->m_bPutInServer = TRUE;
 }
 
 #if !NO_VOICEGAMEMGR
@@ -505,11 +532,17 @@ void ClientCommand( edict_t *pEntity )
 	const char *pcmd = CMD_ARGV( 0 );
 	const char *pstr;
 
+	entvars_t *pev = &pEntity->v;
+
 	// Is the client spawned yet?
 	if( !pEntity->pvPrivateData )
 		return;
 
-	entvars_t *pev = &pEntity->v;
+	// PrivateData is never deleted after it was created on first PutInServer so we will check for IsConnected flag too
+	CBasePlayer *pPlayer = (CBasePlayer *)CBasePlayer::Instance(pev);
+	if (!pPlayer || !pPlayer->IsConnected())
+		return;
+
 
 	if( FStrEq( pcmd, "say" ) )
 	{

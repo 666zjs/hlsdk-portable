@@ -330,8 +330,15 @@ public:
 
 	Vector m_vecLastViewAngles;
 
-	BOOL m_bIsBot;
-	void Disconnect() { m_bIsBot = FALSE; }
+	BOOL m_bConnected;		// we set it in Spawn() so it will be TRUE only after player was spawned
+	BOOL m_bPutInServer;	// we set it after PutInServer finished
+	BOOL m_bIsBot;			// we set it at PutInServer start
+	BOOL IsConnected() { return m_bConnected; }
+	void Disconnect() { m_bConnected = FALSE; m_bPutInServer = FALSE; m_bIsBot = FALSE; }
+
+	BOOL m_bInWelcomeCam;
+	void StartWelcomeCam( void );
+	void StopWelcomeCam( void );
 };
 
 #define AUTOAIM_2DEGREES  0.0348994967025
