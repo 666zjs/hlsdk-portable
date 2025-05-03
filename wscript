@@ -178,6 +178,13 @@ def configure(conf):
 		conf.env.append_unique('CXXFLAGS', cxxflags)
 
 	if conf.env.DEST_OS == 'android':
+		if conf.find_program('termux-info', mandatory=False):
+			conf.env.TERMUX = True
+			conf.define('__TERMUX__', 1)
+
+		if not conf.options.ANDROID_OPTS:
+			conf.check_cc(lib='m')
+
 		# LIB_M added in xcompile!
 		pass
 	elif conf.env.DEST_OS == 'win32':
@@ -245,11 +252,10 @@ def configure(conf):
 		conf.fatal('Don\'t mix Demo and OEM builds!')
 
 	# force to use server library name
-	if conf.env.DEST_OS == 'android':
+	if conf.env.DEST_OS == 'android' and not conf.env.TERMUX:
 		conf.env.SERVER_LIBRARY_NAME = 'server' # can't be any other name, until specified
-
-	# strip lib from pattern
-	if conf.env.DEST_OS not in ['android']:
+	else:
+		# strip lib from pattern
 		if conf.env.cxxshlib_PATTERN.startswith('lib'):
 			conf.env.cxxshlib_PATTERN = conf.env.cxxshlib_PATTERN[3:]
 
