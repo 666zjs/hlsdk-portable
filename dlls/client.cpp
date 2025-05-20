@@ -117,15 +117,11 @@ void ClientDisconnect( edict_t *pEntity )
 
 	char text[256] = "";
 	if( pEntity->v.netname )
-<<<<<<< HEAD
 	{
-		_snprintf( text, sizeof(text) - 1, "SERVER: %s has left the game\n", STRING( pEntity->v.netname ) );
+		safe_snprintf( text, sizeof(text) - 1, "SERVER: %s has left the game\n", STRING( pEntity->v.netname ) );
 		text[sizeof(text) - 1] = '\0';
 	}
-=======
-		safe_snprintf( text, sizeof( text ), "- %s has left the game\n", STRING( pEntity->v.netname ));
 
->>>>>>> origin/master
 	MESSAGE_BEGIN( MSG_ALL, gmsgSayText, NULL );
 		WRITE_BYTE( ENTINDEX( pEntity ) );
 		WRITE_STRING( text );
@@ -432,13 +428,8 @@ void Host_Say( edict_t *pEntity, int teamonly )
 		return;  // no character found, so say nothing
 
 	// turn on color set 2  (color on,  no sound)
-<<<<<<< HEAD
 	if( player->IsObserver() )
-		_snprintf( text, sizeof(text) - 1, "%c(SPEC) %s: ", 2, STRING( pEntity->v.netname ) );
-=======
-	if( player->IsObserver() && ( teamonly ) )
-		safe_snprintf( text, sizeof( text ), "%c(SPEC) %s: ", 2, STRING( pEntity->v.netname ) );
->>>>>>> origin/master
+		safe_snprintf( text, sizeof(text) - 1, "%c(SPEC) %s: ", 2, STRING( pEntity->v.netname ) );
 	else if( teamonly )
 		safe_snprintf( text, sizeof( text ), "%c(TEAM) %s: ", 2, STRING( pEntity->v.netname ) );
 	else
