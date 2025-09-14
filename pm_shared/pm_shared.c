@@ -2567,12 +2567,6 @@ void PM_Jump( void )
 	// In the air now.
 	pmove->onground = -1;
 
-	// if( pmove->multiplayer )
-	bunnyjump = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "bj" ) ) ? true : false;
-
-	if( !bunnyjump )
-		PM_PreventMegaBunnyJumping();
-
 	// Don't play jump sounds while frozen.
 	if( !( pmove->flags & FL_FROZEN ))
 	{
