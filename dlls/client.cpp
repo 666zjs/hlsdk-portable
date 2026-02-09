@@ -915,6 +915,9 @@ void ClientPrecache( void )
 	PRECACHE_SOUND( "player/pl_pain6.wav" );
 	PRECACHE_SOUND( "player/pl_pain7.wav" );
 
+    // PS2HL - player super jump sound
+    PRECACHE_SOUND("player/pl_long_jump.wav");
+
 	PRECACHE_MODEL( "models/player.mdl" );
 
 	// hud sounds

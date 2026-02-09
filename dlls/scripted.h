@@ -94,6 +94,9 @@ public:
 	int m_saved_effects;
 	//Vector m_vecOrigOrigin;
 	BOOL m_interruptable;
+
+    // PS2HL
+    void SetSequenceBoxToTarget(CBaseAnimating * pTarget);
 };
 
 class CCineAI : public CCineMonster

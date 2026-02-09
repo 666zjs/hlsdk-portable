@@ -37,9 +37,54 @@ public:
 	int Classify( void );
 	void HandleAnimEvent( MonsterEvent_t *pEvent );
 	int ISoundMask( void );
-};
 
-LINK_ENTITY_TO_CLASS( monster_generic, CGenericMonster )
+    // PS2HL
+    string_t m_iszTargetTrigger;
+    string_t m_iszNoTargetTrigger;
+    int TakeDamage(entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, int bitsDamageType)
+    {
+        if (pevAttacker)
+            if (!strcmp(STRING(pevAttacker->classname), "player"))
+                FireTargets(STRING(m_iszTargetTrigger), this, this, USE_ON, 1);
+        return CBaseMonster::TakeDamage(pevInflictor, pevAttacker, flDamage, bitsDamageType);
+    }
+    void KeyValue(KeyValueData *pkvd) {
+        if (FStrEq(pkvd->szKeyName, "no_target_trigger"))
+        {
+            //ALERT(at_console, "mon_gen: no aim - %s\n", pkvd->szValue);
+            m_iszNoTargetTrigger = ALLOC_STRING(pkvd->szValue);
+            pkvd->fHandled = TRUE;
+        }
+        else if (FStrEq(pkvd->szKeyName, "target_trigger"))
+        {
+            //ALERT(at_console, "mon_gen: aim - %s\n", pkvd->szValue);
+            m_iszTargetTrigger = ALLOC_STRING(pkvd->szValue);
+            pkvd->fHandled = TRUE;
+        }
+            //else if (FStrEq(pkvd->szKeyName, "health"))
+            //{
+            //	ALERT(at_console, "mon_gen: hp - %s\n", pkvd->szValue);
+            //	pev->health = atof(pkvd->szValue);
+            //	pkvd->fHandled = TRUE;
+            //}
+        else
+        {
+            CBaseMonster::KeyValue(pkvd);
+        }
+    }
+    virtual int		Save(CSave &save);
+    virtual int		Restore(CRestore &restore);
+    static	TYPEDESCRIPTION m_SaveData[];
+};
+LINK_ENTITY_TO_CLASS( monster_generic, CGenericMonster );
+
+// PS2HL - Save/restore
+TYPEDESCRIPTION CGenericMonster::m_SaveData[] =
+        {
+                DEFINE_FIELD(CGenericMonster, m_iszTargetTrigger, FIELD_STRING),
+                DEFINE_FIELD(CGenericMonster, m_iszNoTargetTrigger, FIELD_STRING),
+        };
+IMPLEMENT_SAVERESTORE(CGenericMonster, CBaseMonster);
 
 //=========================================================
 // Classify - indicates this monster's place in the 
@@ -113,9 +158,15 @@ void CGenericMonster::Spawn()
 	pev->solid = SOLID_SLIDEBOX;
 	pev->movetype = MOVETYPE_STEP;
 	m_bloodColor = BLOOD_COLOR_RED;
-	pev->health = 8;
+    //pev->health = 8; // PS2HL
 	m_flFieldOfView = 0.5;// indicates the width of this monster's forward view cone ( as a dotproduct result )
 	m_MonsterState = MONSTERSTATE_NONE;
+
+    // PS2HL
+    if (pev->health == 0)
+        pev->health = 8;
+    //else
+    //	ALERT(at_console, "mon_gen: hp - %f\n", pev->health);
 
 	MonsterInit();
 

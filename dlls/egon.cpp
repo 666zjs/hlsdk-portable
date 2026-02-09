@@ -425,7 +425,7 @@ void CEgon::CreateEffect( void )
 	m_pSprite->pev->scale = 1.0;
 	m_pSprite->SetTransparency( kRenderGlow, 255, 255, 255, 255, kRenderFxNoDissipation );
 	m_pSprite->pev->spawnflags |= SF_SPRITE_TEMPORARY;
-	m_pSprite->pev->flags |= FL_SKIPLOCALHOST;
+    //m_pSprite->pev->flags |= FL_SKIPLOCALHOST;	// PS2HL - commenting this line helps to fix flare effect
 	m_pSprite->pev->owner = m_pPlayer->edict();
 
 	if( m_fireMode == FIRE_WIDE )

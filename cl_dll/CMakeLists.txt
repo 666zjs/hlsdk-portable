@@ -82,6 +82,8 @@ set (CLDLL_SOURCES
 	hl/hl_events.cpp
 	hl/hl_objects.cpp
 	hl/hl_weapons.cpp
+    ps2hl/ps2hl_hudmode.cpp
+    ps2hl/ps2hl_lock.cpp
 	ammo.cpp
 	ammo_secondary.cpp
 	ammohistory.cpp

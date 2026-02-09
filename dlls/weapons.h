@@ -536,6 +536,8 @@ public:
 	void WeaponIdle( void );
 	float m_flSoundDelay;
 
+    void ItemPostFrame( void );	// PS2HL - reload sound fix
+
 	BOOL m_fInZoom;// don't save this. 
 
 	virtual BOOL UseDecrement( void )

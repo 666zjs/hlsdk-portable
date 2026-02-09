@@ -460,7 +460,10 @@ void CWorld::Precache( void )
 {
 	g_pLastSpawn = NULL;
 #if 1
-	CVAR_SET_STRING( "sv_gravity", "800" ); // 67ft/sec
+    if (CVAR_GET_FLOAT("sv_ps2_precache") == 0 && CVAR_GET_FLOAT("sv_supadupaplex") == 0)
+        CVAR_SET_STRING("sv_gravity", "800"); // 67ft/sec
+    else
+        CVAR_SET_STRING("sv_gravity", "840"); // PS2HL - stronger gravity (helps to test mods for PS2)
 	CVAR_SET_STRING( "sv_stepsize", "18" );
 #else
 	CVAR_SET_STRING( "sv_gravity", "384" ); // 32ft/sec

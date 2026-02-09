@@ -306,4 +306,16 @@ class CPythonAmmo : public CBasePlayerAmmo
 };
 
 LINK_ENTITY_TO_CLASS( ammo_357, CPythonAmmo )
+
+// PS2HL - reload sound fix
+void CPython::ItemPostFrame(void)
+{
+    // Emit reload sound
+    if ((m_fInReload) && (m_pPlayer->m_flNextAttack <= UTIL_WeaponTimeBase()))
+        EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", 0.8, ATTN_NORM);
+
+    // Continue with base function
+    CBasePlayerWeapon::ItemPostFrame();
+}
+
 #endif

@@ -37,6 +37,9 @@
 #include "pm_shared.h"
 #include "hltv.h"
 
+// PS2HL
+#include "ps2hl_dbg.h"
+
 // #define DUCKFIX
 
 extern DLL_GLOBAL ULONG g_ulModelIndexPlayer;
@@ -185,6 +188,10 @@ int gmsgTeamNames = 0;
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0;
 
+// PS2HL
+int gmsgHudMode = 0;	// HUD mode
+int gmsgHudLockOff = 0;	// HUD lock offset
+
 void LinkUserMessages( void )
 {
 	// Already taken care of?
@@ -230,6 +237,10 @@ void LinkUserMessages( void )
 
 	gmsgStatusText = REG_USER_MSG( "StatusText", -1 );
 	gmsgStatusValue = REG_USER_MSG( "StatusValue", 3 );
+
+    // PS2HL
+    gmsgHudMode = REG_USER_MSG("HudMode", 1); // HUD mode
+    gmsgHudLockOff = REG_USER_MSG("HudLockOff", 8);	// HUD lock offset
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer )
@@ -982,12 +993,29 @@ void CBasePlayer::SetAnimation( PLAYER_ANIM playerAnim )
 		playerAnim = PLAYER_IDLE;
 	}
 
+    // PS2HL - HUD mode icon handler
+    MESSAGE_BEGIN(MSG_ONE, gmsgHudMode, NULL, pev);
+    if (!FBitSet(pev->flags, FL_DUCKING))
+    {
+        if (speed < 270.0f)
+            WRITE_BYTE(0);	// Idle/walk
+        else
+            WRITE_BYTE(1);	// Running
+    }
+    else
+    {
+        WRITE_BYTE(2);		// Crouching
+    }
+    MESSAGE_END();
+
 	switch( playerAnim )
 	{
 	case PLAYER_JUMP:
 		m_IdealActivity = ACT_HOP;
 		break;
 	case PLAYER_SUPERJUMP:
+        // PS2HL - player super jump sound
+        EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_long_jump.wav", 1, ATTN_NORM);
 		m_IdealActivity = ACT_LEAP;
 		break;
 	case PLAYER_DIE:
@@ -4386,9 +4414,16 @@ Vector CBasePlayer::GetAutoaimVector( float flDelta )
 	{
 		if( m_vecAutoAim.x != m_lastx || m_vecAutoAim.y != m_lasty )
 		{
-			SET_CROSSHAIRANGLE( edict(), -m_vecAutoAim.x, m_vecAutoAim.y );
+            // PS2HL - this is bugged: sometimes it makes crosshair to stay off center after aim assist is finished
+            //SET_CROSSHAIRANGLE( edict(), -m_vecAutoAim.x, m_vecAutoAim.y );
 
-			m_lastx = (int)m_vecAutoAim.x;
+            //// PS2HL - update HUD lock offset (doesn't work, don't have time to investigate)
+            //MESSAGE_BEGIN(MSG_ONE, gmsgHudLockOff, NULL, pev);
+            //WRITE_COORD(m_vecAutoAim.x);
+            //WRITE_COORD(m_vecAutoAim.y);
+            //MESSAGE_END();
+
+            m_lastx = (int)m_vecAutoAim.x;
 			m_lasty = (int)m_vecAutoAim.y;
 		}
 	}

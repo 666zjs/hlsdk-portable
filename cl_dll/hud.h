@@ -98,6 +98,55 @@ struct HUDLIST
 #endif
 #include "hud_spectator.h"
 
+//-----------------------------------------------------
+// PS2HL - HUD mode icon
+//-----------------------------------------------------
+class CHudMode : public CHudBase
+{
+public:
+    int Init(void);
+    int VidInit(void);
+    int Draw(float flTime);
+    void Reset(void);
+    int MsgFunc_HudMode(const char *pszName, int iSize, void *pbuf);
+
+private:
+    HSPRITE m_hCrouch;
+    HSPRITE m_hWalk;
+    HSPRITE m_hRun;
+    wrect_t *m_prcCrouch;
+    wrect_t *m_prcWalk;
+    wrect_t *m_prcRun;
+
+    int m_iMode;
+
+};
+
+//-----------------------------------------------------
+// PS2HL - weapon lock sprite
+//-----------------------------------------------------
+class CHudLock : public CHudBase
+{
+public:
+    int Init(void);
+    int VidInit(void);
+    int Draw(float flTime);
+    void Reset(void);
+
+    void SetSprite	(HSPRITE hspr, wrect_t rc);
+    void SetState		(bool Active);
+    //void CHudLock::SetOffsets	(int OffsetX, int OffsetY);
+    //int MsgFunc_HudLockOff(const char *pszName, int iSize, void *pbuf);
+
+private:
+    HSPRITE m_hLock;
+    wrect_t m_rcLock;
+
+    int m_iActive;
+    int m_iOffX;
+    int m_iOffY;
+};
+
 //
 //-----------------------------------------------------
 //
@@ -620,6 +669,10 @@ public:
 #if !USE_VGUI || USE_NOVGUI_MOTD
 	CHudMOTD	m_MOTD;
 #endif
+
+    // PS2HL
+    CHudMode		m_HudMode;
+    CHudLock		m_HudLock;
 
 	void Init( void );
 	void VidInit( void );

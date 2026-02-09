@@ -45,6 +45,16 @@ else()
 endif()
 
 set (SVDLL_SOURCES
+    ps2hl/ps2hl_bshift.cpp
+    ps2hl/ps2hl_dbg.cpp
+    ps2hl/ps2hl_env_warpball.cpp
+    ps2hl/ps2hl_item_eyescanner.cpp
+    ps2hl/ps2hl_item_generic.cpp
+    ps2hl/ps2hl_item_healthcharger.cpp
+    ps2hl/ps2hl_item_recharge.cpp
+    ps2hl/ps2hl_trigger_islave.cpp
+    ps2hl/ps2hl_trigger_playerfreeze.cpp
+    ps2hl/ps2hl_trigger_random.cpp
 	agrunt.cpp
 	airtank.cpp
 	aflock.cpp
@@ -165,7 +175,7 @@ else()
 		../external/openbsd/strlcat.c)
 endif()
 
-include_directories (. wpn_shared ../common ../engine ../pm_shared ../game_shared ../public)
+include_directories (. wpn_shared ../common ../engine ../pm_shared ../game_shared ../public ps2hl)
 
 if(MSVC)
 	set(SVDLL_SOURCES

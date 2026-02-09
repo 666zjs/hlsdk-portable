@@ -41,6 +41,9 @@ WeaponsResource gWR;
 
 int g_weaponselect = 0;
 
+// PS2HL - cvar reference
+extern cvar_t* cl_ps2hl_oldsights;
+
 void WeaponsResource::LoadAllWeaponSprites( void )
 {
 	for( int i = 0; i < MAX_WEAPONS; i++ )
@@ -109,8 +112,13 @@ void WeaponsResource::LoadWeaponSprites( WEAPON *pWeapon )
 	else
 		pWeapon->hCrosshair = 0;
 
-	p = GetSpriteList( pList, "autoaim", iRes, i );
-	if( p )
+    // PS2HL - give a choice to enable old crosshairs
+    if (cl_ps2hl_oldsights->value != 0)
+        p = GetSpriteList(pList, "autoaimold", iRes, i);
+    else
+        p = GetSpriteList(pList, "autoaim", iRes, i);
+
+    if( p )
 	{
 		sprintf( sz, "sprites/%s.spr", p->szSprite );
 		pWeapon->hAutoaim = SPR_Load( sz );
@@ -577,6 +585,9 @@ int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 		fOnTarget = TRUE;
 	}
 
+    // PS2HL - update lock state
+    gHUD.m_HudLock.SetState(fOnTarget);
+
 	if( iId < 1 )
 	{
 		SetCrosshair( 0, nullrc, 0, 0, 0 );
@@ -614,22 +625,36 @@ int CHudAmmo::MsgFunc_CurWeapon( const char *pszName, int iSize, void *pbuf )
 
 	if( !( gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL ) ) )
 	{
-		if( gHUD.m_iFOV >= 90 )
-		{
-			// normal crosshairs
-			if( fOnTarget && m_pWeapon->hAutoaim )
-				SetCrosshair( m_pWeapon->hAutoaim, m_pWeapon->rcAutoaim, 255, 255, 255 );
-			else
-				SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, 255, 255, 255 );
-		}
-		else
-		{
-			// zoomed crosshairs
-			if( fOnTarget && m_pWeapon->hZoomedAutoaim )
-				SetCrosshair( m_pWeapon->hZoomedAutoaim, m_pWeapon->rcZoomedAutoaim, 255, 255, 255 );
-			else
-				SetCrosshair( m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, 255, 255, 255 );
-		}
+        if (cl_ps2hl_oldsights->value != 0)
+        {
+            if (gHUD.m_iFOV >= 90)
+            {
+                // normal crosshairs
+                if (fOnTarget && m_pWeapon->hAutoaim)
+                    SetCrosshair(m_pWeapon->hAutoaim, m_pWeapon->rcAutoaim, 255, 255, 255);
+                else
+                    SetCrosshair(m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, 255, 255, 255);
+            }
+            else
+            {
+                // zoomed crosshairs
+                if (fOnTarget && m_pWeapon->hZoomedAutoaim)
+                    SetCrosshair(m_pWeapon->hZoomedAutoaim, m_pWeapon->rcZoomedAutoaim, 255, 255,
+                                 255);
+                else
+                    SetCrosshair(m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, 255,
+                                 255, 255);
+            }
+        }
+        else
+        {
+            if (gHUD.m_iFOV >= 90)
+                SetCrosshair(m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, 255, 255, 255);
+            else
+                SetCrosshair(m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, 255, 255, 255);
+
+            gHUD.m_HudLock.SetSprite(m_pWeapon->hAutoaim, m_pWeapon->rcAutoaim);
+        }
 	}
 
 	m_fFade = 200.0f; //!!!

@@ -13,7 +13,7 @@
 *
 ****/
 
-/* all this mess was here to use quake mathlib instead of hlsdk vectors
+/* all this mess was here to use quake mathlib instead of ps2hl vectors
 * it may break debug info or even build because global symbols types differ
 *  it's better to define VectorCopy macro for Vector class */
 #if 0

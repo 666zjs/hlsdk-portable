@@ -23,6 +23,11 @@ static cvar_t build_branch = { "sv_game_build_branch", g_VCSInfo_Branch };
 
 cvar_t displaysoundlist = {"displaysoundlist","0"};
 
+// PS2HL - define cvars
+cvar_t ps2hl_islave_cheat =		{ "cheat_slavemode", "0", FCVAR_SERVER };
+cvar_t ps2hl_debug =			{ "sv_supadupaplex", "0", FCVAR_SERVER  };
+cvar_t ps2hl_precache =			{ "sv_ps2_precache", "0", FCVAR_SERVER };
+
 // multiplayer server rules
 cvar_t fragsleft	= { "mp_fragsleft","0", FCVAR_SERVER | FCVAR_UNLOGGED };	  // Don't spam console/log files/users with this changing
 cvar_t timeleft		= { "mp_timeleft","0" , FCVAR_SERVER | FCVAR_UNLOGGED };	  // "      "
@@ -481,6 +486,11 @@ void GameDLLInit( void )
 
 	CVAR_REGISTER( &displaysoundlist );
 	CVAR_REGISTER( &allow_spectators );
+
+    // PS2HL - register cvars
+    CVAR_REGISTER(&ps2hl_islave_cheat);
+    CVAR_REGISTER(&ps2hl_debug);
+    CVAR_REGISTER(&ps2hl_precache);
 
 	CVAR_REGISTER( &teamplay );
 	CVAR_REGISTER( &fraglimit );

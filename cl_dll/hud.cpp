@@ -98,6 +98,8 @@ extern cvar_t *sensitivity;
 cvar_t *cl_lw = NULL;
 cvar_t *cl_viewbob = NULL;
 
+cvar_t *cl_ps2hl_oldsights;
+
 void ShutdownInput( void );
 
 //DECLARE_MESSAGE( m_Logo, Logo )
@@ -383,6 +385,8 @@ void CHud::Init( void )
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
 	cl_viewbob = CVAR_CREATE( "cl_viewbob", "1", FCVAR_ARCHIVE );
 
+    cl_ps2hl_oldsights = CVAR_CREATE( "cl_ps2hl_oldsights", "0", FCVAR_ARCHIVE );
+
 	m_pSpriteList = NULL;
 
 	// Clear any old HUD list
@@ -427,6 +431,10 @@ void CHud::Init( void )
 #endif
 
 	m_Menu.Init();
+
+    // PS2HL
+    m_HudMode.Init();
+    m_HudLock.Init();
 
 	MsgFunc_ResetHUD( 0, 0, NULL );
 	ClientCmd( "richpresence_gamemode\n" );
@@ -625,6 +633,10 @@ void CHud::VidInit( void )
 #if !USE_VGUI || USE_NOVGUI_SCOREBOARD
 	m_Scoreboard.VidInit();
 #endif
+
+    // PS2HL
+    m_HudMode.VidInit();
+    m_HudLock.VidInit();
 }
 
 int CHud::MsgFunc_Logo( const char *pszName,  int iSize, void *pbuf )

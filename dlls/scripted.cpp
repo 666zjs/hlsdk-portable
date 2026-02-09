@@ -36,6 +36,11 @@
 #include "scripted.h"
 #include "defaultai.h"
 
+// PS2HL - debug
+#include "ps2hl_dbg.h"
+
+#include "studio.h"
+
 /*
 classname "scripted_sequence"
 targetname "me" - there can be more than one with the same name, and they act in concert
@@ -145,6 +150,98 @@ void CCineMonster::Spawn( void )
 		m_interruptable = FALSE;
 	else
 		m_interruptable = TRUE;
+
+    // PS2HL - help with submodel precache list for PS2
+    if (ps2hl_precache.value != 0)
+    {
+        // Get target entity
+        CBaseMonster * pTarget = (CBaseMonster *)UTIL_FindEntityByTargetname(NULL, STRING(m_iszEntity));
+
+        if (pTarget)
+        {
+            void *pmodel = GET_MODEL_PTR(pTarget->edict());
+            studiohdr_t * pstudiohdr = (studiohdr_t *)pmodel;
+            if (!pstudiohdr)
+                return;
+
+            mstudioseqdesc_t * piseqdesc = NULL;
+            if (m_iszIdle)
+            {
+                // Get sequence number
+                StartSequence((CBaseMonster *)pTarget, m_iszIdle, FALSE);
+
+                // Get sequence descriptor
+                piseqdesc = (mstudioseqdesc_t *)((byte *)pstudiohdr + pstudiohdr->seqindex) + pTarget->pev->sequence;
+
+                // Ignore submodel 0
+                if (!piseqdesc->seqgroup)
+                    piseqdesc = NULL;
+            }
+
+            mstudioseqdesc_t * ppseqdesc = NULL;
+            if (m_iszPlay)
+            {
+                // Get sequence number
+                StartSequence((CBaseMonster *)pTarget, m_iszPlay, FALSE);
+
+                // Get sequence descriptor
+                ppseqdesc = (mstudioseqdesc_t *)((byte *)pstudiohdr + pstudiohdr->seqindex) + pTarget->pev->sequence;
+
+                // Ignore submodel 0
+                if (!ppseqdesc->seqgroup)
+                    ppseqdesc = NULL;
+            }
+
+            if (piseqdesc || ppseqdesc)
+            {
+                ALERT(at_console, "\n========== scripted_sequence: %s ==========\n", STRING(pev->targetname));
+                ALERT(at_console, "Model: %s \t\t\t Map: %s\n", STRING(pTarget->pev->model), STRING(gpGlobals->mapname));
+
+                if (piseqdesc)
+                    ALERT(at_console, "Submodel: %d [idle, %s, #%d]\n", piseqdesc->seqgroup, STRING(m_iszIdle), pTarget->pev->sequence);
+
+                if (ppseqdesc)
+                    ALERT(at_console, "Submodel: %d [play, %s, #%d]\n", ppseqdesc->seqgroup, STRING(m_iszPlay), pTarget->pev->sequence);
+
+                ALERT(at_console, "\n", pTarget->pev->sequence);
+
+                // Save data to external file
+                if (ps2hl_debug.value != 0)
+                {
+                    FILE * ptrFile;
+                    char Buff[128];
+
+                    ptrFile = fopen("!PS2_PRECACHE.txt", "a");
+
+                    if (!ptrFile)
+                        return;
+
+                    safe_snprintf(Buff, sizeof(Buff), "\nmap: %s, scripted_sequence: %s\n",
+                              STRING(gpGlobals->mapname), STRING(pev->targetname));
+                    fputs(Buff, ptrFile);
+
+                    safe_snprintf(Buff, sizeof(Buff), " Model: %s [", STRING(pTarget->pev->model));
+                    fputs(Buff, ptrFile);
+
+                    if (piseqdesc)
+                    {
+                        safe_snprintf(Buff, sizeof(Buff), "%d", piseqdesc->seqgroup);
+                        fputs(Buff, ptrFile);
+                    }
+                    fputc(',', ptrFile);
+                    if (ppseqdesc)
+                    {
+                        safe_snprintf(Buff, sizeof(Buff), "%d", ppseqdesc->seqgroup);
+                        fputs(Buff, ptrFile);
+                    }
+
+                    fputc(']', ptrFile);
+                    fputc('\n', ptrFile);
+                    fclose(ptrFile);
+                }
+            }
+        }
+    }
 }
 
 //=========================================================
@@ -518,6 +615,10 @@ BOOL CCineAI::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL completeOnE
 
 	pTarget->pev->sequence = pTarget->LookupSequence( STRING( iszSeq ) );
 
+    // PS2HL - update sequence box (hack for c2a5g cars)
+    if (FClassnameIs(pTarget->pev, "monster_generic") && (pTarget->pev->spawnflags & 0x16) == 0x16 && (pev->spawnflags & 0x68) == 0x68)
+        SetSequenceBoxToTarget(pTarget);
+
 	if( pTarget->pev->sequence == -1 )
 	{
 		ALERT( at_error, "%s: unknown aiscripted sequence \"%s\"\n", STRING( pTarget->pev->targetname ), STRING( iszSeq ) );
@@ -530,6 +631,69 @@ BOOL CCineAI::StartSequence( CBaseMonster *pTarget, int iszSeq, BOOL completeOnE
 	return TRUE;
 }
 
+// PS2HL
+void CCineMonster::SetSequenceBoxToTarget(CBaseAnimating * pTarget)
+{
+    Vector mins, maxs;
+
+    // Get sequence bbox
+    if (pTarget->ExtractBbox(pTarget->pev->sequence, mins, maxs))
+    {
+        // expand box for rotation
+        // find min / max for rotations
+        float yaw = pTarget->pev->angles.y * (M_PI / 180.0);
+
+        Vector xvector, yvector;
+        xvector.x = cos(yaw);
+        xvector.y = sin(yaw);
+        yvector.x = -sin(yaw);
+        yvector.y = cos(yaw);
+        Vector bounds[2];
+
+        bounds[0] = mins;
+        bounds[1] = maxs;
+
+        Vector rmin(9999, 9999, 9999);
+        Vector rmax(-9999, -9999, -9999);
+        Vector base, transformed;
+
+        for (int i = 0; i <= 1; i++)
+        {
+            base.x = bounds[i].x;
+            for (int j = 0; j <= 1; j++)
+            {
+                base.y = bounds[j].y;
+                for (int k = 0; k <= 1; k++)
+                {
+                    base.z = bounds[k].z;
+
+                    // transform the point
+                    transformed.x = xvector.x*base.x + yvector.x*base.y;
+                    transformed.y = xvector.y*base.x + yvector.y*base.y;
+                    transformed.z = base.z;
+
+                    if (transformed.x < rmin.x)
+                        rmin.x = transformed.x;
+                    if (transformed.x > rmax.x)
+                        rmax.x = transformed.x;
+                    if (transformed.y < rmin.y)
+                        rmin.y = transformed.y;
+                    if (transformed.y > rmax.y)
+                        rmax.y = transformed.y;
+                    if (transformed.z < rmin.z)
+                        rmin.z = transformed.z;
+                    if (transformed.z > rmax.z)
+                        rmax.z = transformed.z;
+                }
+            }
+        }
+        rmin.z = 0;	// PS2HL - this helps to fix car crash animations in GoldSource
+        //rmax.z = rmin.z + 1;
+        UTIL_SetSize(pTarget->pev, rmin, rmax);
+    }
+}
+
+
 //=========================================================
 // SequenceDone - called when a scripted sequence animation
 // sequence is done playing ( or when an AI Scripted Sequence
@@ -541,7 +705,24 @@ void CCineMonster::SequenceDone( CBaseMonster *pMonster )
 {
 	//ALERT( at_aiconsole, "Sequence %s finished\n", STRING( m_pCine->m_iszPlay ) );
 
-	if( !( pev->spawnflags & SF_SCRIPT_REPEATABLE ) )
+    // PS2HL - hack that fixes the last car on c2a5g
+    if (FClassnameIs(pMonster->pev, "monster_generic")
+        && (pMonster->pev->spawnflags & 0x16) == 0x16
+        && (pev->spawnflags & 0x68) == 0x68)
+    {
+        int Temp = pMonster->pev->sequence;
+        pMonster->pev->sequence = 0;
+        SetSequenceBoxToTarget(pMonster);
+        pMonster->pev->sequence = Temp;
+        //UTIL_SetSize(pMonster->pev, { 0, 0, 0 }, { 0, 0, 0 });
+    }
+
+    // PS2HL - fix epilepsy for clip_scientist on t0a0
+    if (pev->spawnflags & 0x400)
+        pMonster->m_pCine->m_iszPlay = 0;
+
+
+    if( !( pev->spawnflags & SF_SCRIPT_REPEATABLE ) )
 	{
 		SetThink( &CBaseEntity::SUB_Remove );
 		pev->nextthink = gpGlobals->time + 0.1f;
@@ -1218,7 +1399,29 @@ void CFurniture::Spawn()
 	//pev->nextthink += 1.0f;
 	//SetThink( &WalkMonsterDelay );
 
-	ResetSequenceInfo();
+    // PS2HL - warning about monster_furniture (it's glitched in PS2HL)
+    if (ps2hl_precache.value != 0)
+    {
+        ALERT(at_console, "\n\n===== WARNING =====\nmonster_furniture entity found: %s\n\n\n", STRING(pev->targetname));
+
+        // PS2 mod helper
+        if (ps2hl_debug.value != 0)
+        {
+            FILE * ptrFile;
+            char Buff[128];
+
+            ptrFile = fopen("!PS2_PRECACHE.txt", "a");
+
+            if (ptrFile)
+            {
+                safe_snprintf(Buff, sizeof(Buff), "\n===== WARNING =====\nmonster_furniture entity found: %s\n\n", STRING(pev->targetname));
+                fputs(Buff, ptrFile);
+                fclose(ptrFile);
+            }
+        }
+    }
+
+    ResetSequenceInfo();
 	pev->frame = 0;
 	MonsterInit();
 }
